@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>몸무게 관리 프로그램</title>
+    <meta name="description" content="간단한 웹 기반 몸무게 관리 및 추적 시스템">
+    
+    <style>
+        /* CSS 코드 - 브라우저 호환성 강화 */
+        * {
+            margin: 0;
+            padding: 0;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #667eea;
+            background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            -webkit-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: #4CAF50;
+            background: -webkit-linear-gradient(45deg, #4CAF50, #45a049);
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            gap: 10px;
+            -webkit-flex-wrap: wrap;
+            -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        input {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            -webkit-transition: border-color 0.3s;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #4CAF50;
+            background: -webkit-linear-gradient(45deg, #4CAF50, #45a049);
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            -webkit-transition: transform 0.2s;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            -webkit-transform: translateY(-2px);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            -webkit-transform: translateY(0);
+            transform: translateY(0);
+        }
+
+        .result-display {
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        .bmi-underweight { background: #e3f2fd; color: #1976d2; }
+        .bmi-normal { background: #e8f5e8; color: #4caf50; }
+        .bmi-overweight { background: #fff3e0; color: #ff9800; }
+        .bmi-obese { background: #ffebee; color: #f44336; }
+        .goal-set { background: #e8f5e8; color: #4caf50; }
+        .error-message { background: #ffebee; color: #f44336; }
+        .success-message { background: #e8f5e8; color: #4caf50; }
+
+        .record-item {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -ms-flex-align: center;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .record-item .date {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .record-item .weight {
+            font-size: 1.2rem;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 1rem 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+        }
+
+        .simple-chart {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .chart-message {
+            color: #666;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .offline-indicator {
+            background: #ff9800;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-group {
+                -webkit-box-orient: vertical;
+                -webkit-box-direction: normal;
+                -webkit-flex-direction: column;
+                -ms-flex-direction: column;
+                flex-direction: column;
+            }
+            
+            input, button {
+                width: 100%;
+            }
+            
+            .record-item {
+                -webkit-box-orient: vertical;
+                -webkit-box-direction: normal;
+                -webkit-flex-direction: column;
+                -ms-flex-direction: column;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+
+        /* 로딩 스피너 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="offline-indicator" class="offline-indicator" style="display: none;">
+        🔌 오프라인 모드
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>📊 몸무게 관리 프로그램</h1>
+            <p>건강한 체중 관리를 위한 스마트 트래커</p>
+        </header>
+        
+        <main>
+            <!-- BMI 계산기 섹션 -->
+            <section class="bmi-section">
+                <h2>BMI 계산기</h2>
+                <div class="input-group">
+                    <input type="number" id="height" placeholder="키 (cm)" min="1" max="300" step="1">
+                    <input type="number" id="weight" placeholder="몸무게 (kg)" min="1" max="500" step="0.1">
+                    <button onclick="calculateBMI()" id="bmi-btn">BMI 계산</button>
+                </div>
+                <div id="bmi-result" class="result-display"></div>
+            </section>
+
+            <!-- 목표 설정 섹션 -->
+            <section class="goal-section">
+                <h2>목표 체중 설정</h2>
+                <div class="input-group">
+                    <input type="number" id="target-weight" placeholder="목표 체중 (kg)" min="1" max="500" step="0.1">
+                    <button onclick="setGoal()" id="goal-btn">목표 설정</button>
+                </div>
+                <div id="goal-display" class="result-display"></div>
+            </section>
+
+            <!-- 체중 기록 섹션 -->
+            <section class="record-section">
+                <h2>체중 기록</h2>
+                <div class="input-group">
+                    <input type="text" id="record-date" placeholder="YYYY-MM-DD">
+                    <input type="number" id="record-weight" placeholder="몸무게 (kg)" min="1" max="500" step="0.1">
+                    <button onclick="addRecord()" id="record-btn">기록 추가</button>
+                </div>
+                <div id="record-result" class="result-display"></div>
+            </section>
+
+            <!-- 차트 섹션 -->
+            <section class="chart-section">
+                <h2>체중 변화 그래프</h2>
+                <div class="chart-container">
+                    <canvas id="weightChart" style="display: none;"></canvas>
+                    <div id="simple-chart" class="simple-chart"></div>
+                </div>
+            </section>
+
+            <!-- 기록 목록 섹션 -->
+            <section class="history-section">
+                <h2>기록 내역</h2>
+                <div id="records-list"></div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        // 전역 변수 및 설정
+        let weightRecords = [];
+        let targetWeight = null;
+        let chart = null;
+        let isOnline = navigator.onLine;
+        let chartJsLoaded = false;
+
+        // 저장소 래퍼 (에러 처리 포함)
+        const storage = {
+            get: function(key, defaultValue = null) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch (e) {
+                    console.warn('localStorage get error:', e);
+                    return defaultValue;
+                }
+            },
+            set: function(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    return true;
+                } catch (e) {
+                    console.warn('localStorage set error:', e);
+                    return false;
+                }
+            },
+            remove: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (e) {
+                    console.warn('localStorage remove error:', e);
+                    return false;
+                }
+            }
+        };
+
+        // 유틸리티 함수들
+        function showMessage(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            element.innerHTML = message;
+            element.className = 'result-display ' + (type === 'error' ? 'error-message' : 'success-message');
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    element.innerHTML = '';
+                    element.className = 'result-display';
+                }, 3000);
+            }
+        }
+
+        function validateNumber(value, min = 0, max = 1000) {
+            const num = parseFloat(value);
+            return !isNaN(num) && num >= min && num <= max;
+        }
+
+        function formatDate(dateString) {
+            try {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+                return date.toLocaleDateString('ko-KR');
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        // 네트워크 상태 관리
+        function updateOnlineStatus() {
+            isOnline = navigator.onLine;
+            const indicator = document.getElementById('offline-indicator');
+            if (indicator) {
+                indicator.style.display = isOnline ? 'none' : 'block';
+            }
+        }
+
+        // Chart.js 로드 시도
+        function loadChartJs() {
+            if (chartJsLoaded || !isOnline) {
+                return Promise.resolve(false);
+            }
+            
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+                script.onload = function() {
+                    chartJsLoaded = true;
+                    resolve(true);
+                };
+                script.onerror = function() {
+                    console.warn('Chart.js 로드 실패');
+                    resolve(false);
+                };
+                script.timeout = 5000; // 5초 타임아웃
+                document.head.appendChild(script);
+            });
+        }
+
+        // BMI 계산 함수 (강화된 에러 처리)
+        function calculateBMI() {
+            const heightInput = document.getElementById('height');
+            const weightInput = document.getElementById('weight');
+            const btn = document.getElementById('bmi-btn');
+            
+            if (!heightInput || !weightInput || !btn) {
+                showMessage('bmi-result', '시스템 오류가 발생했습니다.', 'error');
+                return;
+            }
+            
+            const height = heightInput.value.trim();
+            const weight = weightInput.value.trim();
+            
+            if (!height || !weight) {
+                showMessage('bmi-result', '키와 몸무게를 모두 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (!validateNumber(height, 50, 300) || !validateNumber(weight, 10, 500)) {
+                showMessage('bmi-result', '올바른 수치를 입력해주세요. (키: 50-300cm, 몸무게: 10-500kg)', 'error');
+                return;
+            }
+            
+            try {
+                btn.innerHTML = '<span class="loading"></span> 계산 중...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    const heightM = parseFloat(height) / 100;
+                    const weightKg = parseFloat(weight);
+                    const bmi = weightKg / (heightM * heightM);
+                    
+                    let category, className;
+                    
+                    if (bmi < 18.5) {
+                        category = '저체중';
+                        className = 'bmi-underweight';
+                    } else if (bmi < 23) {
+                        category = '정상';
+                        className = 'bmi-normal';
+                    } else if (bmi < 25) {
+                        category = '과체중';
+                        className = 'bmi-overweight';
+                    } else {
+                        category = '비만';
+                        className = 'bmi-obese';
+                    }
+                    
+                    const resultDiv = document.getElementById('bmi-result');
+                    if (resultDiv) {
+                        resultDiv.innerHTML = 'BMI: ' + bmi.toFixed(1) + ' (' + category + ')';
+                        resultDiv.className = 'result-display ' + className;
+                    }
+                    
+                    btn.innerHTML = 'BMI 계산';
+                    btn.disabled = false;
+                }, 500);
+                
+            } catch (error) {
+                console.error('BMI 계산 오류:', error);
+                showMessage('bmi-result', 'BMI 계산 중 오류가 발생했습니다.', 'error');
+                btn.innerHTML = 'BMI 계산';
+                btn.disabled = false;
+            }
+        }
+
+        // 목표 체중 설정 (강화된 검증)
+        function setGoal() {
+            const goalInput = document.getElementById('target-weight');
+            const btn = document.getElementById('goal-btn');
+            
+            if (!goalInput || !btn) {
+                showMessage('goal-display', '시스템 오류가 발생했습니다.', 'error');
+                return;
+            }
+            
+            const goalWeight = goalInput.value.trim();
+            
+            if (!goalWeight) {
+                showMessage('goal-display', '목표 체중을 입력해주세요.', 'error');
+                return;
+            }
+            
+            if (!validateNumber(goalWeight, 10, 500)) {
+                showMessage('goal-display', '올바른 목표 체중을 입력해주세요. (10-500kg)', 'error');
+                return;
+            }
+            
+            try {
+                btn.innerHTML = '<span class="loading"></span> 설정 중...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    targetWeight = parseFloat(goalWeight);
+                    storage.set('targetWeight', targetWeight);
+                    
+                    displayGoal();
+                    updateChart();
+                    goalInput.value = '';
+                    
+                    btn.innerHTML = '목표 설정';
+                    btn.disabled = false;
+                    showMessage('goal-display', '목표 체중이 설정되었습니다!', 'success');
+                }, 300);
+                
+            } catch (error) {
+                console.error('목표 설정 오류:', error);
+                showMessage('goal-display', '목표 설정 중 오류가 발생했습니다.', 'error');
+                btn.innerHTML = '목표 설정';
+                btn.disabled = false;
+            }
+        }
+
+        // 목표 체중 표시
+        function displayGoal() {
+            const goalDisplay = document.getElementById('goal-display');
+            if (!goalDisplay) return;
+            
+            if (targetWeight) {
+                goalDisplay.innerHTML = '목표 체중: ' + targetWeight + 'kg';
+                goalDisplay.className = 'result-display goal-set';
+            }
+        }
+
+        // 체중 기록 추가 (강화된 검증 및 에러 처리)
+        function addRecord() {
+            const dateInput = document.getElementById('record-date');
+            const weightInput = document.getElementById('record-weight');
+            const btn = document.getElementById('record-btn');
+            
+            if (!dateInput || !weightInput || !btn) {
+                showMessage('record-result', '시스템 오류가 발생했습니다.', 'error');
+                return;
+            }
+            
+            const date = dateInput.value.trim();
+            const weight = weightInput.value.trim();
+            
+            if (!date || !weight) {
+                showMessage('record-result', '날짜와 몸무게를 모두 입력해주세요.', 'error');
+                return;
+            }
+            
+            // 날짜 형식 검증
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                showMessage('record-result', '올바른 날짜 형식을 입력해주세요. (YYYY-MM-DD)', 'error');
+                return;
+            }
+            
+            if (!validateNumber(weight, 10, 500)) {
+                showMessage('record-result', '올바른 몸무게를 입력해주세요. (10-500kg)', 'error');
+                return;
+            }
+            
+            try {
+                btn.innerHTML = '<span class="loading"></span> 저장 중...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    const newRecord = {
+                        date: date,
+                        weight: parseFloat(weight),
+                        timestamp: Date.now()
+                    };
+                    
+                    // 같은 날짜 기록이 있는지 확인
+                    const existingIndex = weightRecords.findIndex(record => record.date === date);
+                    
+                    if (existingIndex !== -1) {
+                        if (confirm('같은 날짜에 이미 기록이 있습니다. 덮어쓰시겠습니까?')) {
+                            weightRecords[existingIndex] = newRecord;
+                        } else {
+                            btn.innerHTML = '기록 추가';
+                            btn.disabled = false;
+                            return;
+                        }
+                    } else {
+                        weightRecords.push(newRecord);
+                    }
+                    
+                    // 날짜순 정렬
+                    weightRecords.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    
+                    // 저장
+                    if (storage.set('weightRecords', weightRecords)) {
+                        showMessage('record-result', '기록이 저장되었습니다!', 'success');
+                        weightInput.value = '';
+                        displayRecords();
+                        updateChart();
+                    } else {
+                        // 롤백
+                        weightRecords.splice(existingIndex !== -1 ? existingIndex : weightRecords.length - 1, 0, record);
+                        alert('저장 중 오류가 발생했습니다.');
+                    }
+                    
+                    btn.innerHTML = '기록 추가';
+                    btn.disabled = false;
+                }, 300);
+                
+            } catch (error) {
+                console.error('기록 추가 오류:', error);
+                showMessage('record-result', '기록 추가 중 오류가 발생했습니다.', 'error');
+                btn.innerHTML = '기록 추가';
+                btn.disabled = false;
+            }
+        }
+
+        // 기록 목록 표시
+        function displayRecords() {
+            const recordsList = document.getElementById('records-list');
+            if (!recordsList) return;
+            
+            if (weightRecords.length === 0) {
+                recordsList.innerHTML = '<p style="text-align: center; color: #666;">아직 기록이 없습니다.</p>';
+                return;
+            }
+            
+            try {
+                const recordsHTML = weightRecords
+                    .slice()
+                    .reverse() // 최신 기록을 위로
+                    .map((record, index) => {
+                        const actualIndex = weightRecords.length - 1 - index;
+                        return '<div class="record-item">' +
+                                '<span class="date">' + formatDate(record.date) + '</span>' +
+                                '<span class="weight">' + record.weight + 'kg</span>' +
+                                '<button class="delete-btn" onclick="deleteRecord(' + actualIndex + ')">삭제</button>' +
+                                '</div>';
+                    })
+                    .join('');
+                
+                recordsList.innerHTML = recordsHTML;
+            } catch (error) {
+                console.error('기록 표시 오류:', error);
+                recordsList.innerHTML = '<p style="text-align: center; color: #f44336;">기록을 불러오는 중 오류가 발생했습니다.</p>';
+            }
+        }
+
+        // 기록 삭제 (확인 절차 강화)
+        function deleteRecord(index) {
+            if (index < 0 || index >= weightRecords.length) {
+                alert('잘못된 기록입니다.');
+                return;
+            }
+            
+            const record = weightRecords[index];
+            if (!record) {
+                alert('기록을 찾을 수 없습니다.');
+                return;
+            }
+            
+            const confirmMessage = formatDate(record.date) + '의 ' + record.weight + 'kg 기록을 삭제하시겠습니까?';
+            
+            if (confirm(confirmMessage)) {
+                try {
+                    weightRecords.splice(index, 1);
+                    if (storage.set('weightRecords', weightRecords)) {
+                        displayRecords();
+                        updateChart();
+                        showMessage('record-result', '기록이 삭제되었습니다.', 'success');
+                    } else {
+                        // 롤백
+                        weightRecords.splice(index, 0, record);
+                        alert('삭제 중 오류가 발생했습니다.');
+                    }
+                } catch (error) {
+                    console.error('기록 삭제 오류:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                }
+            }
+        }
+
+        // 간단한 차트 그리기 (Chart.js 없이)
+        function drawSimpleChart() {
+            const container = document.getElementById('simple-chart');
+            if (!container || weightRecords.length === 0) {
+                if (container) {
+                    container.innerHTML = '<div class="chart-message">기록이 없어서 차트를 표시할 수 없습니다.</div>';
+                }
+                return;
+            }
+            
+            try {
+                const weights = weightRecords.map(r => r.weight);
+                const dates = weightRecords.map(r => formatDate(r.date));
+                const minWeight = Math.min(...weights);
+                const maxWeight = Math.max(...weights);
+                const weightRange = maxWeight - minWeight || 1;
+                
+                let html = '<div style="font-weight: bold; margin-bottom: 10px; text-align: center;">체중 변화 추이</div>';
+                html += '<div style="display: flex; flex-direction: column; height: 200px;">';
+                
+                // 간단한 막대 그래프
+                for (let i = 0; i < Math.min(weightRecords.length, 10); i++) {
+                    const record = weightRecords[weightRecords.length - 1 - i]; // 최신부터
+                    const height = ((record.weight - minWeight) / weightRange) * 150 + 20;
+                    const color = targetWeight ? 
+                        (record.weight <= targetWeight ? '#4CAF50' : '#ff9800') : '#2196F3';
+                    
+                    html += '<div style="display: flex; align-items: end; margin: 2px 0;">';
+                    html += '<div style="width: 80px; font-size: 12px; text-align: right; padding-right: 5px;">' + 
+                            formatDate(record.date).split(' ')[0] + '</div>';
+                    html += '<div style="background: ' + color + '; height: ' + height + 'px; width: 20px; margin: 0 5px;"></div>';
+                    html += '<div style="font-size: 12px; color: #333;">' + record.weight + 'kg</div>';
+                    html += '</div>';
+                }
+                
+                if (targetWeight) {
+                    html += '<div style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">';
+                    html += '목표: ' + targetWeight + 'kg | 현재: ' + weights[weights.length - 1] + 'kg';
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('간단 차트 그리기 오류:', error);
+                container.innerHTML = '<div class="chart-message">차트를 그리는 중 오류가 발생했습니다.</div>';
+            }
+        }
+
+        // Chart.js를 사용한 고급 차트
+        function drawAdvancedChart() {
+            if (!window.Chart || weightRecords.length === 0) {
+                return false;
+            }
+            
+            try {
+                const ctx = document.getElementById('weightChart');
+                if (!ctx) return false;
+                
+                ctx.getContext('2d');
+                
+                // 기존 차트 제거
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                const labels = weightRecords.map(record => formatDate(record.date));
+                const data = weightRecords.map(record => record.weight);
+                const goalLine = targetWeight ? Array(labels.length).fill(targetWeight) : null;
+                
+                const datasets = [{
+                    label: '체중 (kg)',
+                    data: data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: true
+                }];
+                
+                if (goalLine) {
+                    datasets.push({
+                        label: '목표 체중',
+                        data: goalLine,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0,
+                        fill: false
+                    });
+                }
+                
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '체중 변화 추이'
+                            },
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: '체중 (kg)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '날짜'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // 고급 차트가 성공적으로 그려지면 간단 차트 숨기기
+                document.getElementById('simple-chart').style.display = 'none';
+                ctx.style.display = 'block';
+                return true;
+            } catch (error) {
+                console.error('고급 차트 그리기 오류:', error);
+                return false;
+            }
+        }
+
+        // 차트 업데이트 (fallback 포함)
+        function updateChart() {
+            // Chart.js가 로드되어 있고 온라인이면 고급 차트 시도
+            if (chartJsLoaded && window.Chart) {
+                if (drawAdvancedChart()) {
+                    return; // 성공하면 종료
+                }
+            }
+            
+            // Chart.js 로드 시도 (온라인일 때만)
+            if (isOnline && !chartJsLoaded) {
+                loadChartJs().then(function(loaded) {
+                    if (loaded && drawAdvancedChart()) {
+                        return;
+                    }
+                    // 실패하면 간단 차트로 fallback
+                    document.getElementById('weightChart').style.display = 'none';
+                    document.getElementById('simple-chart').style.display = 'block';
+                    drawSimpleChart();
+                });
+            } else {
+                // 오프라인이거나 Chart.js 로드 실패 시 간단 차트 사용
+                document.getElementById('weightChart').style.display = 'none';
+                document.getElementById('simple-chart').style.display = 'block';
+                drawSimpleChart();
+            }
+        }
+
+        // 데이터 로드
+        function loadData() {
+            try {
+                weightRecords = storage.get('weightRecords', []);
+                targetWeight = storage.get('targetWeight', null);
+                
+                // 데이터 유효성 검사
+                if (!Array.isArray(weightRecords)) {
+                    weightRecords = [];
+                }
+                
+                // 잘못된 기록 필터링
+                weightRecords = weightRecords.filter(record => {
+                    return record && 
+                           typeof record.date === 'string' && 
+                           typeof record.weight === 'number' && 
+                           record.weight > 0 && 
+                           record.weight < 1000;
+                });
+                
+                if (targetWeight !== null && (typeof targetWeight !== 'number' || targetWeight <= 0)) {
+                    targetWeight = null;
+                }
+                
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                weightRecords = [];
+                targetWeight = null;
+            }
+        }
+
+        // 페이지 초기화
+        function initializePage() {
+            try {
+                // 현재 날짜 설정
+                const dateInput = document.getElementById('record-date');
+                if (dateInput) {
+                    dateInput.value = getCurrentDate();
+                }
+                
+                // 데이터 로드
+                loadData();
+                
+                // UI 업데이트
+                displayGoal();
+                displayRecords();
+                updateChart();
+                updateOnlineStatus();
+                
+                console.log('페이지 초기화 완료');
+            } catch (error) {
+                console.error('페이지 초기화 오류:', error);
+                alert('페이지 로드 중 오류가 발생했습니다. 페이지를 새로고침해주세요.');
+            }
+        }
+
+        // 이벤트 리스너 등록
+        function setupEventListeners() {
+            try {
+                // 온라인/오프라인 상태 감지
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                
+                // Enter 키 이벤트
+                document.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const target = e.target;
+                        if (target.id === 'height' || target.id === 'weight') {
+                            calculateBMI();
+                        } else if (target.id === 'target-weight') {
+                            setGoal();
+                        } else if (target.id === 'record-date' || target.id === 'record-weight') {
+                            addRecord();
+                        }
+                    }
+                });
+                
+                // 에러 핸들링
+                window.addEventListener('error', function(e) {
+                    console.error('전역 오류:', e.error);
+                });
+                
+                window.addEventListener('unhandledrejection', function(e) {
+                    console.error('처리되지 않은 Promise 오류:', e.reason);
+                });
+                
+            } catch (error) {
+                console.error('이벤트 리스너 설정 오류:', error);
+            }
+        }
+
+        // DOM 로드 완료 시 초기화
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setupEventListeners();
+                initializePage();
+            });
+        } else {
+            setupEventListeners();
+            initializePage();
+        }
+    </script>
+</body>
+</html>
